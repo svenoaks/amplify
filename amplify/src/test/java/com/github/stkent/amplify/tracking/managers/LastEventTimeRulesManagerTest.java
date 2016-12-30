@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import com.github.stkent.amplify.helpers.BaseTest;
 import com.github.stkent.amplify.helpers.FakeSettings;
 import com.github.stkent.amplify.tracking.interfaces.IEvent;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,7 +42,7 @@ public class LastEventTimeRulesManagerTest extends BaseTest {
     @Mock
     private IEvent mockEvent;
     @Mock
-    private IEventBasedRule<Long> mockEventBasedRule;
+    private IEventRule<Long> mockEventBasedRule;
 
     @Override
     public void localSetUp() {

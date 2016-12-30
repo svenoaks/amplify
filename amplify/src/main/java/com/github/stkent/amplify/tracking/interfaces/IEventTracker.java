@@ -33,7 +33,7 @@ public interface IEventTracker<T> {
      */
     void addEventBasedRule(
             @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<T> rule);
+            @NonNull final IEventRule<T> rule);
 
     /**
      * Call this method to notify an implementing class that an event occurred.

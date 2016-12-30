@@ -24,7 +24,7 @@ import com.github.stkent.amplify.tracking.Amplify;
 import com.github.stkent.amplify.tracking.AmplifyExceptionHandler;
 import com.github.stkent.amplify.tracking.interfaces.IAppLevelEventRulesManager;
 import com.github.stkent.amplify.tracking.interfaces.IEvent;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 import com.github.stkent.amplify.tracking.interfaces.IEventsManager;
 import com.github.stkent.amplify.tracking.interfaces.ISettings;
 import com.github.stkent.amplify.tracking.rules.CooldownDaysRule;
@@ -46,10 +46,10 @@ public final class AppLevelEventRulesManager implements IAppLevelEventRulesManag
     private final IApp app;
 
     @Nullable
-    private IEventBasedRule<Long> installTimeRule;
+    private IEventRule<Long> installTimeRule;
 
     @Nullable
-    private IEventBasedRule<Long> lastUpdateTimeRule;
+    private IEventRule<Long> lastUpdateTimeRule;
 
     @Nullable
     private IEventsManager<Long> lastAppCrashedTimeManager;
@@ -105,7 +105,7 @@ public final class AppLevelEventRulesManager implements IAppLevelEventRulesManag
         // This log message is morally correct, but technically misleading (we do not explicitly
         // track an IEvent implementation called APP_INSTALLED).
         Amplify.getLogger().d(
-                "Registered " + installTimeRule.getDescription() + " for event APP_INSTALLED");
+                "Registered " + installTimeRule + " for event APP_INSTALLED");
     }
 
     @Override
@@ -115,7 +115,7 @@ public final class AppLevelEventRulesManager implements IAppLevelEventRulesManag
         // This log message is morally correct, but technically misleading (we do not explicitly
         // track an IEvent implementation called APP_UPDATED).
         Amplify.getLogger().d(
-                "Registered " + lastUpdateTimeRule.getDescription() + " for event APP_UPDATED");
+                "Registered " + lastUpdateTimeRule + " for event APP_UPDATED");
     }
 
     @Override

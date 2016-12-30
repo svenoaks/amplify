@@ -18,9 +18,9 @@ package com.github.stkent.amplify.tracking.rules;
 
 import android.support.annotation.NonNull;
 
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
-public final class MinimumCountRule implements IEventBasedRule<Integer> {
+public final class MinimumCountRule implements IEventRule<Integer> {
 
     private final int minimumCount;
 

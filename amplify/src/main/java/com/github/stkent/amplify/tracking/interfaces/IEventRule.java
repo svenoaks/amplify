@@ -18,17 +18,17 @@ package com.github.stkent.amplify.tracking.interfaces;
 
 import android.support.annotation.NonNull;
 
-/**
- * An abstract representation of a class that manages multiple environment based prompt timing
- * rules.
- */
-public interface IEnvironmentBasedRulesManager extends IRulesManager {
+import com.github.stkent.amplify.IApp;
+import com.github.stkent.amplify.tracking.EventMetadata;
 
-    /**
-     * Add a new environment-based prompt timing rule to this manager.
-     *
-     * @param rule the prompt timing rule to be added
-     */
-    void addEnvironmentBasedRule(@NonNull final IEnvironmentBasedRule rule);
+/**
+ * An abstract representation of a prompt timing rule that depends on a tracked event.
+ */
+public interface IEventRule {
+
+    boolean shouldAllowFeedbackPrompt(
+            @NonNull EventMetadata cachedEventMetadata,
+            @NonNull IApp app,
+            long currentTimeMillis);
 
 }

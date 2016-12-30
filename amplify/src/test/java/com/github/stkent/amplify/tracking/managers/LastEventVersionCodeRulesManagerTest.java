@@ -23,7 +23,7 @@ import com.github.stkent.amplify.IApp;
 import com.github.stkent.amplify.helpers.BaseTest;
 import com.github.stkent.amplify.helpers.FakeSettings;
 import com.github.stkent.amplify.tracking.interfaces.IEvent;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -45,7 +45,7 @@ public class LastEventVersionCodeRulesManagerTest extends BaseTest {
     private IEvent mockEvent;
 
     @Mock
-    private IEventBasedRule<Integer> mockEventBasedRule;
+    private IEventRule<Integer> mockEventBasedRule;
 
     @Override
     public void localSetUp() {

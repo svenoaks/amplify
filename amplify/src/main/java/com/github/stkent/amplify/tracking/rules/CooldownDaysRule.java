@@ -18,39 +18,43 @@ package com.github.stkent.amplify.tracking.rules;
 
 import android.support.annotation.NonNull;
 
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
-import com.github.stkent.amplify.utils.time.SystemTimeUtil;
+import com.github.stkent.amplify.IApp;
+import com.github.stkent.amplify.tracking.EventMetadata;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
 import static java.util.concurrent.TimeUnit.DAYS;
 
-public final class CooldownDaysRule implements IEventBasedRule<Long> {
+public final class CooldownDaysRule implements IEventRule {
 
-    private final long cooldownPeriodDays;
+    private final long days;
 
-    public CooldownDaysRule(final long cooldownPeriodDays) {
-        if (cooldownPeriodDays <= 0) {
-            throw new IllegalStateException(
-                    "Cooldown days rule must be configured with a positive cooldown period");
+    public CooldownDaysRule(final long days) {
+        if (days <= 0) {
+            throw new IllegalStateException("Cooldown days rule must be configured with a positive cooldown period");
         }
 
-        this.cooldownPeriodDays = cooldownPeriodDays;
+        this.days = days;
     }
 
     @Override
-    public boolean shouldAllowFeedbackPromptByDefault() {
-        return true;
+    public boolean shouldAllowFeedbackPrompt(
+            @NonNull final EventMetadata cachedEventMetadata,
+            @NonNull final IApp app,
+            final long currentTimeMillis) {
+
+        final Long firstEventTimeMillis = cachedEventMetadata.getFirstTimeMillis();
+
+        //noinspection SimplifiableIfStatement
+        if (firstEventTimeMillis == null) {
+            return true;
+        } else {
+            return currentTimeMillis - firstEventTimeMillis >= DAYS.toMillis(days);
+        }
     }
 
     @Override
-    public boolean shouldAllowFeedbackPrompt(@NonNull final Long cachedEventValue) {
-        return (SystemTimeUtil.currentTimeMillis() - cachedEventValue) >= DAYS.toMillis(cooldownPeriodDays);
-    }
-
-    @NonNull
-    @Override
-    public String getDescription() {
-        return "CooldownDaysRule with a cooldown period of "
-                + cooldownPeriodDays + " day" + (cooldownPeriodDays > 1 ? "s" : "");
+    public String toString() {
+        return "CooldownDaysRule with a cooldown period of " + days + " day" + (days > 1 ? "s" : "");
     }
 
 }

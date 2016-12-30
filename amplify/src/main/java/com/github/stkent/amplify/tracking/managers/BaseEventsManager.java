@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.github.stkent.amplify.tracking.Amplify;
 import com.github.stkent.amplify.tracking.interfaces.IEvent;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 import com.github.stkent.amplify.tracking.interfaces.IEventsManager;
 import com.github.stkent.amplify.tracking.interfaces.ISettings;
 
@@ -37,7 +37,7 @@ public abstract class BaseEventsManager<T> implements IEventsManager<T> {
 
     private final ISettings<T> settings;
 
-    private final ConcurrentHashMap<IEvent, List<IEventBasedRule<T>>> internalMap;
+    private final ConcurrentHashMap<IEvent, List<IEventRule<T>>> internalMap;
 
     @NonNull
     protected abstract String getTrackedEventDimensionDescription();
@@ -69,10 +69,10 @@ public abstract class BaseEventsManager<T> implements IEventsManager<T> {
     @Override
     public void addEventBasedRule(
             @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<T> rule) {
+            @NonNull final IEventRule<T> rule) {
 
         if (!isTrackingEvent(event)) {
-            internalMap.put(event, new ArrayList<IEventBasedRule<T>>());
+            internalMap.put(event, new ArrayList<IEventRule<T>>());
         }
 
         internalMap.get(event).add(rule);
@@ -108,10 +108,10 @@ public abstract class BaseEventsManager<T> implements IEventsManager<T> {
     public boolean shouldAllowFeedbackPrompt() {
         boolean result = true;
 
-        for (final Map.Entry<IEvent, List<IEventBasedRule<T>>> rules : internalMap.entrySet()) {
+        for (final Map.Entry<IEvent, List<IEventRule<T>>> rules : internalMap.entrySet()) {
             final IEvent event = rules.getKey();
 
-            for (final IEventBasedRule<T> rule : rules.getValue()) {
+            for (final IEventRule<T> rule : rules.getValue()) {
                 final T cachedEventValue = getCachedTrackingValue(event);
 
                 if (cachedEventValue != null) {
@@ -171,7 +171,7 @@ public abstract class BaseEventsManager<T> implements IEventsManager<T> {
     }
 
     private void logPromptBlockedMessage(
-            @NonNull final IEventBasedRule<T> rule,
+            @NonNull final IEventRule<T> rule,
             @NonNull final IEvent event) {
 
         Amplify.getLogger().d(

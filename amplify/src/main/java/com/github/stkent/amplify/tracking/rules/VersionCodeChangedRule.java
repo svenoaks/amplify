@@ -21,11 +21,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
 import com.github.stkent.amplify.App;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
 import static android.support.annotation.VisibleForTesting.PRIVATE;
 
-public final class VersionCodeChangedRule implements IEventBasedRule<Integer> {
+public final class VersionCodeChangedRule implements IEventRule<Integer> {
 
     private final int appVersionCode;
 

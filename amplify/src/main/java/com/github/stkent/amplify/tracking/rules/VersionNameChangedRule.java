@@ -21,11 +21,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
 import com.github.stkent.amplify.App;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
 import static android.support.annotation.VisibleForTesting.PRIVATE;
 
-public final class VersionNameChangedRule implements IEventBasedRule<String> {
+public final class VersionNameChangedRule implements IEventRule<String> {
 
     @NonNull
     private final String appVersionName;
@@ -34,8 +34,7 @@ public final class VersionNameChangedRule implements IEventBasedRule<String> {
         this(new App(context).getVersionName());
     }
 
-    @VisibleForTesting(otherwise = PRIVATE)
-    /* package-private */ VersionNameChangedRule(@NonNull final String appVersionName) {
+    public VersionNameChangedRule(@NonNull final String appVersionName) {
         this.appVersionName = appVersionName;
     }
 

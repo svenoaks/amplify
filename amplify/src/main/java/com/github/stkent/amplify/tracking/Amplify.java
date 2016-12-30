@@ -31,10 +31,10 @@ import com.github.stkent.amplify.logging.ILogger;
 import com.github.stkent.amplify.logging.NoOpLogger;
 import com.github.stkent.amplify.prompt.interfaces.IPromptView;
 import com.github.stkent.amplify.tracking.interfaces.IAppLevelEventRulesManager;
-import com.github.stkent.amplify.tracking.interfaces.IEnvironmentBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEnvironmentRule;
 import com.github.stkent.amplify.tracking.interfaces.IEnvironmentBasedRulesManager;
 import com.github.stkent.amplify.tracking.interfaces.IEvent;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 import com.github.stkent.amplify.tracking.interfaces.IEventListener;
 import com.github.stkent.amplify.tracking.interfaces.IEventsManager;
 import com.github.stkent.amplify.tracking.managers.AppLevelEventRulesManager;
@@ -44,6 +44,8 @@ import com.github.stkent.amplify.tracking.managers.LastEventTimeRulesManager;
 import com.github.stkent.amplify.tracking.managers.LastEventVersionCodeRulesManager;
 import com.github.stkent.amplify.tracking.managers.LastEventVersionNameRulesManager;
 import com.github.stkent.amplify.tracking.managers.TotalEventCountRulesManager;
+import com.github.stkent.amplify.tracking.rules.AmazonAppStoreRule;
+import com.github.stkent.amplify.tracking.rules.CooldownDaysRule;
 import com.github.stkent.amplify.tracking.rules.GooglePlayStoreRule;
 import com.github.stkent.amplify.tracking.rules.MaximumCountRule;
 import com.github.stkent.amplify.tracking.rules.VersionNameChangedRule;
@@ -51,17 +53,17 @@ import com.github.stkent.amplify.utils.ActivityReferenceManager;
 import com.github.stkent.amplify.utils.Constants;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.github.stkent.amplify.tracking.ApplicationEvent.CRASH;
+import static com.github.stkent.amplify.tracking.ApplicationEvent.CRASHED;
+import static com.github.stkent.amplify.tracking.ApplicationEvent.UPDATED;
 import static com.github.stkent.amplify.tracking.PromptInteractionEvent.USER_DECLINED_CRITICAL_FEEDBACK;
 import static com.github.stkent.amplify.tracking.PromptInteractionEvent.USER_DECLINED_POSITIVE_FEEDBACK;
 import static com.github.stkent.amplify.tracking.PromptInteractionEvent.USER_GAVE_CRITICAL_FEEDBACK;
 import static com.github.stkent.amplify.tracking.PromptInteractionEvent.USER_GAVE_POSITIVE_FEEDBACK;
+import static com.github.stkent.amplify.tracking.rules.EnvironmentRuleComposers.anyOf;
 
 @SuppressWarnings({"PMD.ExcessiveParameterList", "checkstyle:parameternumber"})
 public final class Amplify implements IEventListener {
-
-    private static final int DEFAULT_USER_GAVE_POSITIVE_FEEDBACK_MAXIMUM_COUNT = 1;
-    private static final int DEFAULT_LAST_UPDATE_TIME_COOLDOWN_DAYS = 7;
-    private static final int DEFAULT_LAST_CRASH_TIME_COOLDOWN_DAYS = 7;
 
     // Begin logging
 
@@ -110,8 +112,9 @@ public final class Amplify implements IEventListener {
     // End shared instance
     // Begin instance fields
 
+    private final IEnvironment environment;
+    private final IApp app;
     private final IAppLevelEventRulesManager appLevelEventRulesManager;
-    private final IEnvironmentBasedRulesManager environmentBasedRulesManager;
     private final ActivityReferenceManager activityReferenceManager;
     private final IEventsManager<Long> firstEventTimeRulesManager;
     private final IEventsManager<Long> lastEventTimeRulesManager;
@@ -122,6 +125,8 @@ public final class Amplify implements IEventListener {
     private boolean alwaysShow;
     private IFeedbackCollector[] positiveFeedbackCollectors;
     private IFeedbackCollector[] criticalFeedbackCollectors;
+    private IEnvironmentRule environmentRule;
+    private IEventRule eventRule;
 
     // End instance fields
     // Begin constructors
@@ -130,9 +135,8 @@ public final class Amplify implements IEventListener {
         activityReferenceManager = new ActivityReferenceManager();
         application.registerActivityLifecycleCallbacks(activityReferenceManager);
 
-        final IEnvironment environment = new Environment(application);
-
-        this.environmentBasedRulesManager = new EnvironmentBasedRulesManager(environment);
+        environment = new Environment(application);
+        app = new App(application);
 
         final SharedPreferences sharedPrefs = application.getSharedPreferences(sharedPrefsName, MODE_PRIVATE);
         final IApp app = new App(application);
@@ -158,76 +162,25 @@ public final class Amplify implements IEventListener {
         return this;
     }
 
-    public Amplify applyAllDefaultRules(@NonNull final Context context) {
+    public Amplify setEnvironmentRule(@NonNull final IEnvironmentRule environmentRule) {
+        this.environmentRule = environmentRule;
+        return this;
+    }
+
+    public Amplify setEventRule(@NonNull final IEvent event, @NonNull final IEventRule eventRule) {
+        this.eventRule = eventRule;
+        return this;
+    }
+
+    public Amplify applyAllDefaultRules() {
         return this
-                .addEnvironmentBasedRule(new GooglePlayStoreRule())
-                .setLastUpdateTimeCooldownDays(DEFAULT_LAST_UPDATE_TIME_COOLDOWN_DAYS)
-                .setLastCrashTimeCooldownDays(DEFAULT_LAST_CRASH_TIME_COOLDOWN_DAYS)
-                .addTotalEventCountRule(USER_GAVE_POSITIVE_FEEDBACK,
-                        new MaximumCountRule(DEFAULT_USER_GAVE_POSITIVE_FEEDBACK_MAXIMUM_COUNT))
-                .addLastEventVersionNameRule(USER_GAVE_CRITICAL_FEEDBACK, new VersionNameChangedRule(context))
-                .addLastEventVersionNameRule(USER_DECLINED_CRITICAL_FEEDBACK, new VersionNameChangedRule(context))
-                .addLastEventVersionNameRule(USER_DECLINED_POSITIVE_FEEDBACK, new VersionNameChangedRule(context));
-    }
-
-    public Amplify addEnvironmentBasedRule(@NonNull final IEnvironmentBasedRule rule) {
-        environmentBasedRulesManager.addEnvironmentBasedRule(rule);
-        return this;
-    }
-
-    public Amplify setInstallTimeCooldownDays(final int cooldownPeriodDays) {
-        appLevelEventRulesManager.setInstallTimeCooldownDays(cooldownPeriodDays);
-        return this;
-    }
-
-    public Amplify setLastUpdateTimeCooldownDays(final int cooldownPeriodDays) {
-        appLevelEventRulesManager.setLastUpdateTimeCooldownDays(cooldownPeriodDays);
-        return this;
-    }
-
-    public Amplify setLastCrashTimeCooldownDays(final int cooldownPeriodDays) {
-        appLevelEventRulesManager.setLastCrashTimeCooldownDays(cooldownPeriodDays);
-        return this;
-    }
-
-    public Amplify addTotalEventCountRule(
-            @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<Integer> rule) {
-
-        totalEventCountRulesManager.addEventBasedRule(event, rule);
-        return this;
-    }
-
-    public Amplify addFirstEventTimeRule(
-            @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<Long> rule) {
-
-        firstEventTimeRulesManager.addEventBasedRule(event, rule);
-        return this;
-    }
-
-    public Amplify addLastEventTimeRule(
-            @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<Long> rule) {
-
-        lastEventTimeRulesManager.addEventBasedRule(event, rule);
-        return this;
-    }
-
-    public Amplify addLastEventVersionCodeRule(
-            @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<Integer> rule) {
-
-        lastEventVersionCodeRulesManager.addEventBasedRule(event, rule);
-        return this;
-    }
-
-    public Amplify addLastEventVersionNameRule(
-            @NonNull final IEvent event,
-            @NonNull final IEventBasedRule<String> rule) {
-
-        lastEventVersionNameRulesManager.addEventBasedRule(event, rule);
-        return this;
+                .setEnvironmentRule(anyOf(new GooglePlayStoreRule(), new AmazonAppStoreRule()))
+                .setEventRule(UPDATED, new CooldownDaysRule(7))
+                .setEventRule(CRASHED, new CooldownDaysRule(7))
+                .setEventRule(USER_GAVE_POSITIVE_FEEDBACK, new MaximumCountRule(1))
+                .setEventRule(USER_GAVE_CRITICAL_FEEDBACK, new VersionNameChangedRule())
+                .setEventRule(USER_DECLINED_CRITICAL_FEEDBACK, new VersionNameChangedRule())
+                .setEventRule(USER_DECLINED_POSITIVE_FEEDBACK, new VersionNameChangedRule());
     }
 
     // End configuration methods
@@ -291,7 +244,7 @@ public final class Amplify implements IEventListener {
     public boolean shouldPrompt() {
         return alwaysShow | (
                   appLevelEventRulesManager.shouldAllowFeedbackPrompt()
-                & environmentBasedRulesManager.shouldAllowFeedbackPrompt()
+                & environmentRule.shouldAllowFeedbackPrompt(environment)
                 & totalEventCountRulesManager.shouldAllowFeedbackPrompt()
                 & firstEventTimeRulesManager.shouldAllowFeedbackPrompt()
                 & lastEventTimeRulesManager.shouldAllowFeedbackPrompt()
@@ -302,7 +255,7 @@ public final class Amplify implements IEventListener {
     // End query methods
 
     private boolean isConfigured() {
-        return positiveFeedbackCollectors != null && criticalFeedbackCollectors != null;
+        return positiveFeedbackCollectors != null && criticalFeedbackCollectors != null; // fixme: update
     }
 
 }

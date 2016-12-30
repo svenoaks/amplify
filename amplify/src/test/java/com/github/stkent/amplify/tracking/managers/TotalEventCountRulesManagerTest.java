@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import com.github.stkent.amplify.helpers.BaseTest;
 import com.github.stkent.amplify.helpers.FakeSettings;
 import com.github.stkent.amplify.tracking.interfaces.IEvent;
-import com.github.stkent.amplify.tracking.interfaces.IEventBasedRule;
+import com.github.stkent.amplify.tracking.interfaces.IEventRule;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -40,7 +40,7 @@ public class TotalEventCountRulesManagerTest extends BaseTest {
     @Mock
     private IEvent mockEvent;
     @Mock
-    private IEventBasedRule<Integer> mockRule;
+    private IEventRule<Integer> mockRule;
 
     @Override
     public void localSetUp() {
