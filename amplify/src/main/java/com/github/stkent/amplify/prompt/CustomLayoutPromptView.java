@@ -121,10 +121,11 @@ public final class CustomLayoutPromptView
      * documentation of that method for confirmation.
      */
     private void init(@Nullable final AttributeSet attributeSet) {
-        final TypedArray typedArray = getContext().getTheme()
+        // NonNull
+        final TypedArray typedArray = getContext()
+                .getTheme()
                 .obtainStyledAttributes(attributeSet, R.styleable.CustomLayoutPromptView, 0, 0);
 
-        // todo: does obtainStyledAttributes ever return null? if not, can update this constructor.
         config = new CustomLayoutPromptViewConfig(typedArray);
 
         typedArray.recycle();
