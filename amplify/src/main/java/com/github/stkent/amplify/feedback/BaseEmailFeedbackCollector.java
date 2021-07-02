@@ -84,8 +84,10 @@ public abstract class BaseEmailFeedbackCollector implements IFeedbackCollector {
     }
 
     private void showFeedbackEmailChooser(@NonNull final Activity currentActivity, @NonNull final Intent emailIntent) {
-        currentActivity.startActivity(emailIntent);
-        currentActivity.overridePendingTransition(0, 0);
+        try {
+            currentActivity.startActivity(emailIntent);
+            currentActivity.overridePendingTransition(0, 0);
+        } catch (Exception e) {}
     }
 
 }

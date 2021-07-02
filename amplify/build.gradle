@@ -24,7 +24,7 @@ apply plugin: "gnag"
 
 ext {
     // Library info:
-    libraryVersion = "2.2.3"
+    libraryVersion = "2.2.4"
     libraryName = "amplify"
     libraryGroupId = "com.github.stkent"
     libraryArtifactId = "amplify"
@@ -48,11 +48,11 @@ ext {
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 30
         versionCode 1
         versionName libraryVersion
     }
@@ -109,11 +109,4 @@ gnag {
 dependencies {
     implementation("com.android.support:appcompat-v7:$supportLibraryVersion")
 
-    testImplementation("junit:junit:4.12")
-    testImplementation("org.mockito:mockito-core:2.28.2")
 }
-
-apply from: "https://raw.githubusercontent.com/stkent/JCenter/master/bintray1.8.4.gradle"
-apply from: "https://raw.githubusercontent.com/stkent/JCenter/master/install2.1.gradle"
-apply from: "https://raw.githubusercontent.com/stkent/JCenter/master/license0.15.0.gradle"
-apply from: "coverage.gradle"

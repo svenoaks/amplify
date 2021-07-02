@@ -78,11 +78,7 @@ public final class Environment implements IEnvironment {
 
     @Override
     public boolean canHandleIntent(@NonNull final Intent intent) {
-        final List<ResolveInfo> resolveInfoList = appContext
-                .getPackageManager()
-                .queryIntentActivities(intent, MATCH_DEFAULT_ONLY);
-
-        return !resolveInfoList.isEmpty();
+        return true;
     }
 
 }
